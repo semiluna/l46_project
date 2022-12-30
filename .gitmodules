@@ -1,3 +1,0 @@
-[submodule "DistillGCN"]
-	path = DistillGCN
-	url = https://github.com/ihollywhy/DistillGCN.PyTorch.git
