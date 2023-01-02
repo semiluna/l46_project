@@ -42,7 +42,8 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
     net_gcn = GATNet(args, g)
     pruning_gat.add_mask(net_gcn)
 
-    net_gcn.load_state_dict(rewind_weight_mask)
+    if rewind_weight_mask:
+        net_gcn.load_state_dict(rewind_weight_mask)
     adj_spar, wei_spar = pruning_gat.print_sparsity(net_gcn)
 
     for name, param in net_gcn.named_parameters():
@@ -97,9 +98,14 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
         'state_dict': best_model,
     }
 
-    with open(f'{PATH}/{args["dataset"]}-iteration-{imp}.pickle', 'wb') as handle:
+    with open(f'{PATH}/{args["dataset"]}-iteration-{imp_num}.pickle', 'wb') as handle:
         pickle.dump(pruned_model, handle)
-        print(f'Saved model to {PATH}/iteration-{imp}.pickle')
+        print(f'Saved model to {PATH}/iteration-{imp_num}.pickle')
+    
+    with open(f'{PATH}/statistics.txt', 'a') as handle:
+        print('Iteration {} | Graph sparsity {:.2f}, model sparsity: {:.2f}, test accuracy: {:.4f} at epoch {}'
+            .format(imp_num, adj_spar, wei_spar, best_val_acc['test_acc'], best_val_acc['epoch']), file=handle)
+    return best_model
 
 
 def run_get_mask(args, imp_num, rewind_weight_mask=None):
@@ -199,11 +205,11 @@ if __name__ == "__main__":
     if args['dataset'] == '':
         raise Exception("Plase provide a dataset: [Cora, Citeseer, Pubmed]")
     
-    rewind_weight = None
+    rewind_weight = run_fix_mask(args, 0, None)
     for imp in range(1, 21):
         
         rewind_weight = run_get_mask(args, imp, rewind_weight)
-        run_fix_mask(args, imp, rewind_weight)
+        _ = run_fix_mask(args, imp, rewind_weight)
 
 """
 Default command line for Cora:

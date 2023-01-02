@@ -149,7 +149,9 @@ def get_teacher(args, data_info):
     #         args.residual)
 
     t_model = GATNet(args, data_info['g'])
-    pruning_gat.add_mask(t_model)
+    if args.pruning:
+        pruning_gat.add_mask(t_model)
+    
     return t_model
     
 def get_student(args, data_info):

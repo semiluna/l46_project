@@ -204,7 +204,7 @@ def train_teacher(args, model, data, device):
 
 
 def main(args):
-    PATH_TO_TEACHER = '/Users/antoniaboca/vs_code/l46_project/lth-models/cora-iteration-1.pickle'
+    PATH_TO_TEACHER = '/Users/antoniaboca/vs_code/l46_project/lth-models/{args.}-iteration-1.pickle'
     
     device = torch.device("cpu") if args.gpu<0 else torch.device("cuda:" + str(args.gpu))
     # data, data_info = get_data_loader(args)
@@ -259,6 +259,10 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GAT')
+    parser.add_argument("--dataset", type=str, default='')
+    parser.add_argument("--iteration", type=int, default=1)
+    parser.add_argument('--pruning', type=bool, action='store_true')
+    
     parser.add_argument("--gpu", type=int, default=1,
                         help="which GPU to use. Set -1 to use CPU.")
     parser.add_argument("--residual", action="store_true", default=False,
@@ -293,7 +297,7 @@ if __name__ == '__main__':
                         help="number of training epochs")
     parser.add_argument("--s-num-heads", type=int, default=2,
                         help="number of hidden attention heads")
-    parser.add_argument("--s-num-out-heads", type=int, default=2,
+    parser.add_argument("--s-num-out-heads", type=int, default=1,
                         help="number of output attention heads")
     parser.add_argument("--s-num-layers", type=int, default=4,
                         help="number of hidden layers")
