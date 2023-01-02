@@ -38,8 +38,8 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
     g.add_edges(adj.row, adj.col)
     loss_func = nn.CrossEntropyLoss()
 
-    net_gcn = GATNet(args['embedding_dim'], g)
     g.add_edges(list(range(node_num)), list(range(node_num)))
+    net_gcn = GATNet(args, g)
     pruning_gat.add_mask(net_gcn)
 
     net_gcn.load_state_dict(rewind_weight_mask)
@@ -69,7 +69,7 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
                 best_val_acc['val_acc'] = acc_val
                 best_val_acc['test_acc'] = acc_test
                 best_val_acc['epoch'] = epoch
-                best_val_acc['summary'] = str(summary(net_gcn))
+                best_val_acc['summary'] = str(summary(net_gcn, verbose=0))
                 best_model = copy.deepcopy(net_gcn.state_dict())
 
 
@@ -83,9 +83,8 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
                                 best_val_acc['test_acc'] * 100, 
                                 best_val_acc['epoch']))
 
-    print("syd final: [{},{}] IMP[{}] (Fix Mask) Final Val:[{:.2f}] Test:[{:.2f}] at Epoch:[{}] | Adj:[{:.2f}%] Wei:[{:.2f}%]"
+    print("syd final: [{},gat] IMP[{}] (Fix Mask) Final Val:[{:.2f}] Test:[{:.2f}] at Epoch:[{}] | Adj:[{:.2f}%] Wei:[{:.2f}%]"
                  .format(   args['dataset'],
-                            args['net'],
                             imp_num,
                             best_val_acc['val_acc'] * 100, 
                             best_val_acc['test_acc'] * 100, 
@@ -98,7 +97,7 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
         'state_dict': best_model,
     }
 
-    with open(f'{PATH}/cora-iteration-{imp}.pickle', 'wb') as handle:
+    with open(f'{PATH}/{args["dataset"]}-iteration-{imp}.pickle', 'wb') as handle:
         pickle.dump(pruned_model, handle)
         print(f'Saved model to {PATH}/iteration-{imp}.pickle')
 
@@ -175,8 +174,8 @@ def parser_loader():
     ###### Unify pruning settings #######
     parser.add_argument('--s1', type=float, default=0.0001,help='scale sparse rate (default: 0.0001)')
     parser.add_argument('--s2', type=float, default=0.0001,help='scale sparse rate (default: 0.0001)')
-    parser.add_argument('--mask_epoch', type=int, default=300)
-    parser.add_argument('--fix_epoch', type=int, default=300)
+    parser.add_argument('--mask_epoch', type=int, default=200)
+    parser.add_argument('--fix_epoch', type=int, default=200)
     parser.add_argument('--pruning_percent_wei', type=float, default=0.1)
     parser.add_argument('--pruning_percent_adj', type=float, default=0.1)
     parser.add_argument('--dataset', type=str, default='')
@@ -186,6 +185,8 @@ def parser_loader():
     parser.add_argument('--seed', type=int, default=666)
     parser.add_argument('--dropout', type=float, default=0.6)
     parser.add_argument('--n_layers', type=int, default=2)
+    parser.add_argument('--num_heads', type=int, default=8)
+    parser.add_argument('--residual', action='store_true')
     return parser
 
 
@@ -203,5 +204,10 @@ if __name__ == "__main__":
         
         rewind_weight = run_get_mask(args, imp, rewind_weight)
         run_fix_mask(args, imp, rewind_weight)
-        
+
+"""
+Default command line for Cora:
+
+    python3 -u main_gingat_imp.py --dataset cora --embedding-dim 1433 512 7 --lr 0.008 --weight-decay 8e-5 --pruning_percent_wei 0.2 --pruning_percent_adj 0.05 --mask_epoch 150 --fix_epoch 150 --s1 1e-3 --s2 1e-3 
+"""
     

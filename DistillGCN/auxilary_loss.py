@@ -75,6 +75,7 @@ def gen_mi_loss(auxiliary_model, middle_feats_s, graph, feats, train_subgraph, t
         
         middle_feats_t = middle_feats_t[0].flatten(1)
     
+    middle_feats_s = middle_feats_s.flatten(1)
     dist_t = auxiliary_model['local_model']['model'](train_subgraph, middle_feats_t[train_mask])
     dist_s = auxiliary_model['local_model']['model'](train_subgraph, middle_feats_s[train_mask])
     graphKL_loss = graph_KLDiv(train_subgraph, dist_s, dist_t)

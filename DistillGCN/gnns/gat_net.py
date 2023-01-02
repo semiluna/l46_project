@@ -18,7 +18,7 @@ class GATNet(nn.Module):
     def __init__(self, net_params, graph):
         super().__init__()
 
-        in_dim_node = net_params['embedding_dim'][0] # node_dim (feat is an integer)
+        in_dim_node = (net_params['embedding_dim'])[0] # node_dim (feat is an integer)
         hidden_dim = net_params['embedding_dim'][1]
         out_dim = net_params['embedding_dim'][2]
         n_classes = net_params['embedding_dim'][2]
@@ -28,7 +28,7 @@ class GATNet(nn.Module):
         self.edge_num = graph.number_of_edges()
         self.graph_norm = False
         self.batch_norm = False
-        self.residual = False
+        self.residual = net_params['residual']
         self.dropout = dropout
         self.n_classes = n_classes
         

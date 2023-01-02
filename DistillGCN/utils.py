@@ -17,9 +17,9 @@ def evaluate(feats, model, subgraph, labels, loss_fcn, idx_val=None):
     model.eval()
     with torch.no_grad():
         model.g = subgraph
-        for layer in model.gat_layers:
+        for layer in model.layers:
             layer.g = subgraph
-        output = model(feats.float())
+        output, _ = model(subgraph, feats, 0, 0)
         loss_data = loss_fcn(output[idx_val], labels[idx_val])
         predict = output[idx_val].cpu().numpy().argmax(axis=1)
         score = f1_score(labels[idx_val].data.cpu().numpy(),
@@ -148,7 +148,7 @@ def get_teacher(args, data_info):
     #         args.alpha,
     #         args.residual)
 
-    t_model = GATNet(args['embedding_dim'], data_info['g'])
+    t_model = GATNet(args, data_info['g'])
     pruning_gat.add_mask(t_model)
     return t_model
     
@@ -156,18 +156,28 @@ def get_student(args, data_info):
     '''args holds the common arguments
     data_info holds some special arugments
     '''
-    heads = ([args.s_num_heads] * args.s_num_layers) + [args.s_num_out_heads]
-    model = GAT(data_info['g'],
-            args.s_num_layers,
-            data_info['num_feats'],
-            args.s_num_hidden,
-            data_info['n_classes'],
-            heads,
-            F.elu,
-            args.in_drop,
-            args.attn_drop,
-            args.alpha,
-            args.residual)
+    # heads = ([args.s_num_heads] * args.s_num_layers) + [args.s_num_out_heads]
+    # model = GAT(data_info['g'],
+    #         args.s_num_layers,
+    #         data_info['num_feats'],
+    #         args.s_num_hidden,
+    #         data_info['n_classes'],
+    #         heads,
+    #         F.elu,
+    #         args.in_drop,
+    #         args.attn_drop,
+    #         args.alpha,
+    #         args.residual)
+
+    model_args = {
+        'n_layers': args.s_num_layers,
+        'embedding_dim': [data_info['num_feats'], args.s_num_hidden, data_info['n_classes']],
+        'num_heads': args.s_num_heads,
+        'dropout': args.attn_drop,
+        'residual':args.residual,
+    }
+    
+    model = GATNet(model_args, data_info['g'])
     return model
 
 def get_feat_info(args):
