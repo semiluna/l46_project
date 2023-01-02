@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from torchsummary import summary
 import net as net
 from utils_lth import load_data, load_adj_raw
 from sklearn.metrics import f1_score
@@ -37,21 +38,12 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
     g.add_edges(adj.row, adj.col)
     loss_func = nn.CrossEntropyLoss()
 
-    if args['net'] == 'gin':
-        net_gcn = GINNet(args['embedding_dim'], g)
-        pruning_gin.add_mask(net_gcn)
-    elif args['net'] == 'gat':
-        net_gcn = GATNet(args['embedding_dim'], g)
-        g.add_edges(list(range(node_num)), list(range(node_num)))
-        pruning_gat.add_mask(net_gcn)
-    else: assert False
+    net_gcn = GATNet(args['embedding_dim'], g)
+    g.add_edges(list(range(node_num)), list(range(node_num)))
+    pruning_gat.add_mask(net_gcn)
 
     net_gcn.load_state_dict(rewind_weight_mask)
-
-    if args['net'] == 'gin':
-        adj_spar, wei_spar = pruning_gin.print_sparsity(net_gcn)
-    else:
-        adj_spar, wei_spar = pruning_gat.print_sparsity(net_gcn)
+    adj_spar, wei_spar = pruning_gat.print_sparsity(net_gcn)
 
     for name, param in net_gcn.named_parameters():
         if 'mask' in name:
@@ -77,6 +69,7 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
                 best_val_acc['val_acc'] = acc_val
                 best_val_acc['test_acc'] = acc_test
                 best_val_acc['epoch'] = epoch
+                best_val_acc['summary'] = str(summary(net_gcn))
                 best_model = copy.deepcopy(net_gcn.state_dict())
 
 
@@ -102,14 +95,12 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
     pruned_model = {
         'args': args,
         'stats': best_val_acc,
-        'state_dict': best_model
+        'state_dict': best_model,
     }
 
     with open(f'{PATH}/cora-iteration-{imp}.pickle', 'wb') as handle:
         pickle.dump(pruned_model, handle)
         print(f'Saved model to {PATH}/iteration-{imp}.pickle')
-
-    
 
 
 def run_get_mask(args, imp_num, rewind_weight_mask=None):
@@ -128,24 +119,15 @@ def run_get_mask(args, imp_num, rewind_weight_mask=None):
     g.add_edges(adj.row, adj.col)
     loss_func = nn.CrossEntropyLoss()
 
-    if args['net'] == 'gin':
-        net_gcn = GINNet(args['embedding_dim'], g)
-        pruning_gin.add_mask(net_gcn)
-    elif args['net'] == 'gat':
-        net_gcn = GATNet(args['embedding_dim'], g)
-        g.add_edges(list(range(node_num)), list(range(node_num)))
-        pruning_gat.add_mask(net_gcn)
-    else: assert False
-
+    g.add_edges(list(range(node_num)), list(range(node_num)))
+    net_gcn = GATNet(args, g)
+    pruning_gat.add_mask(net_gcn)
+    
     if rewind_weight_mask:
         net_gcn.load_state_dict(rewind_weight_mask)
     
-    if args['net'] == 'gin':
-        pruning_gin.add_trainable_mask_noise(net_gcn, c=1e-5)
-        adj_spar, wei_spar = pruning_gin.print_sparsity(net_gcn)
-    else:
-        pruning_gat.add_trainable_mask_noise(net_gcn, c=1e-5)
-        adj_spar, wei_spar = pruning_gat.print_sparsity(net_gcn)
+    pruning_gat.add_trainable_mask_noise(net_gcn, c=1e-5)
+    adj_spar, wei_spar = pruning_gat.print_sparsity(net_gcn)
 
     optimizer = torch.optim.Adam(net_gcn.parameters(), lr=args['lr'], weight_decay=args['weight_decay'])
     best_val_acc = {'val_acc': 0, 'epoch' : 0, 'test_acc': 0}
@@ -158,10 +140,7 @@ def run_get_mask(args, imp_num, rewind_weight_mask=None):
         output, _ = net_gcn(g, features, 0, 0)
         loss = loss_func(output[idx_train], labels[idx_train])
         loss.backward()
-        if args['net'] == 'gin':
-            pruning_gin.subgradient_update_mask(net_gcn, args) # l1 norm
-        else:
-            pruning_gat.subgradient_update_mask(net_gcn, args) # l1 norm
+        pruning_gat.subgradient_update_mask(net_gcn, args) # l1 norm
             
         optimizer.step()
         with torch.no_grad():
@@ -174,10 +153,7 @@ def run_get_mask(args, imp_num, rewind_weight_mask=None):
                 best_val_acc['test_acc'] = acc_test
                 best_val_acc['epoch'] = epoch
 
-                if args['net'] == 'gin':
-                    rewind_weight, adj_spar, wei_spar = pruning_gin.get_final_mask_epoch(net_gcn, rewind_weight, args) 
-                else:
-                    rewind_weight, adj_spar, wei_spar = pruning_gat.get_final_mask_epoch(net_gcn, rewind_weight, args)
+                rewind_weight, adj_spar, wei_spar = pruning_gat.get_final_mask_epoch(net_gcn, rewind_weight, args)
                  
         print("IMP[{}] (Get Mask) Epoch:[{}/{}] LOSS:[{:.4f}] Val:[{:.2f}] Test:[{:.2f}] | Final Val:[{:.2f}] Test:[{:.2f}] at Epoch:[{}] | Adj:[{:.2f}%] Wei:[{:.2f}%]"
                .format(imp_num, epoch, 
@@ -207,8 +183,9 @@ def parser_loader():
     parser.add_argument('--embedding-dim', nargs='+', type=int, default=[3703,16,6])
     parser.add_argument('--lr', type=float, default=0.01)
     parser.add_argument('--weight-decay', type=float, default=5e-4)
-    parser.add_argument('--net', type=str, default='')
     parser.add_argument('--seed', type=int, default=666)
+    parser.add_argument('--dropout', type=float, default=0.6)
+    parser.add_argument('--n_layers', type=int, default=2)
     return parser
 
 
@@ -217,6 +194,9 @@ if __name__ == "__main__":
     parser = parser_loader()
     args = vars(parser.parse_args())
     print(args)
+
+    if args['dataset'] == '':
+        raise Exception("Plase provide a dataset: [Cora, Citeseer, Pubmed]")
     
     rewind_weight = None
     for imp in range(1, 21):

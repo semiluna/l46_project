@@ -18,14 +18,14 @@ class GATNet(nn.Module):
     def __init__(self, net_params, graph):
         super().__init__()
 
-        in_dim_node = net_params[0] # node_dim (feat is an integer)
-        hidden_dim = net_params[1]
-        out_dim = net_params[2]
-        n_classes = net_params[2]
-        num_heads = 8
-        dropout = 0.6
-        n_layers = 5
-        self.edge_num = graph.number_of_edges() + graph.number_of_nodes()
+        in_dim_node = net_params['embedding_dim'][0] # node_dim (feat is an integer)
+        hidden_dim = net_params['embedding_dim'][1]
+        out_dim = net_params['embedding_dim'][2]
+        n_classes = net_params['embedding_dim'][2]
+        num_heads = net_params['num_heads']
+        dropout = net_params['dropout']
+        n_layers = net_params['n_layers']
+        self.edge_num = graph.number_of_edges()
         self.graph_norm = False
         self.batch_norm = False
         self.residual = False
@@ -35,7 +35,7 @@ class GATNet(nn.Module):
         self.layers = nn.ModuleList([GATLayer(in_dim_node, hidden_dim, num_heads,
                                               dropout, self.graph_norm, self.batch_norm, self.residual)])
         for _ in range(1, n_layers-1):
-            self.layers.append(GATLayer(hidden_dim, hidden_dim, num_heads, 
+            self.layers.append(GATLayer(hidden_dim * num_heads, hidden_dim, num_heads, 
                                                 dropout, self.graph_norm, self.batch_norm, self.residual))
 
         self.layers.append(GATLayer(hidden_dim * num_heads, out_dim, 1, 0, self.graph_norm, self.batch_norm, self.residual))
