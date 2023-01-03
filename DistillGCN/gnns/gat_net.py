@@ -15,7 +15,7 @@ import pdb
 
 class GATNet(nn.Module):
 
-    def __init__(self, net_params, graph):
+    def __init__(self, net_params, graph, pruning=False):
         super().__init__()
 
         in_dim_node = (net_params['embedding_dim'])[0] # node_dim (feat is an integer)
@@ -40,8 +40,10 @@ class GATNet(nn.Module):
 
         self.layers.append(GATLayer(hidden_dim * num_heads, out_dim, 1, 0, self.graph_norm, self.batch_norm, self.residual))
 
-
-        self.adj_mask1_train = nn.Parameter(torch.ones(self.edge_num, 1), requires_grad=True)
+        if pruning:
+            self.adj_mask1_train = nn.Parameter(torch.ones(self.edge_num, 1), requires_grad=True)
+        else:
+            self.adj_mask1_train = nn.Parameter(torch.ones(self.edge_num, 1), requires_grad=False)
         self.adj_mask2_fixed = nn.Parameter(torch.ones(self.edge_num, 1), requires_grad=False)
 
     def forward(self, g, h, snorm_n, snorm_e):

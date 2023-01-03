@@ -53,7 +53,7 @@ def loss_fn_kd(logits, logits_t, alpha=1.0, T=10.0):
     #mse_loss = mse_loss_fn(logits, logits_t)
     return ce_loss*alpha + (1-alpha)*kl_loss
 
-def gen_mi_loss(auxiliary_model, middle_feats_s, graph, feats, train_subgraph, train_mask, device, class_loss):
+def gen_mi_loss(auxiliary_model, middle_feats_s, graph, feats, train_subgraph, train_mask, device, class_loss=None):
     """
     Params:
         middle_feats_s  -   student's middle features

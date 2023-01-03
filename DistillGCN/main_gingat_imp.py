@@ -39,7 +39,7 @@ def run_fix_mask(args, imp_num, rewind_weight_mask):
     loss_func = nn.CrossEntropyLoss()
 
     g.add_edges(list(range(node_num)), list(range(node_num)))
-    net_gcn = GATNet(args, g)
+    net_gcn = GATNet(args, g, pruning=True)
     pruning_gat.add_mask(net_gcn)
 
     if rewind_weight_mask:
@@ -125,7 +125,7 @@ def run_get_mask(args, imp_num, rewind_weight_mask=None):
     loss_func = nn.CrossEntropyLoss()
 
     g.add_edges(list(range(node_num)), list(range(node_num)))
-    net_gcn = GATNet(args, g)
+    net_gcn = GATNet(args, g, pruning=True)
     pruning_gat.add_mask(net_gcn)
     
     if rewind_weight_mask:

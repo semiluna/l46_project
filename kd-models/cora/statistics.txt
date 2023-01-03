@@ -1,0 +1,301 @@
+{
+training mode: full
+pruning iteration: 0
+teacher accuracy: 0.7840000000000001
+f1 score on test set: 0.7579999999999999
+loss on training set: 0.00010437193850520998
+}
+{
+training mode: kd
+pruning iteration: 0
+teacher accuracy: 0.7840000000000001
+f1 score on test set: 0.805
+loss on training set: 0.1269107311964035
+}
+{
+training mode: kd
+pruning iteration: 1
+teacher accuracy: 0.793
+f1 score on test set: 0.7890000000000001
+loss on training set: 0.11442024260759354
+}
+{
+training mode: kd
+pruning iteration: 2
+teacher accuracy: 0.799
+f1 score on test set: 0.7810000000000001
+loss on training set: 0.20443017780780792
+}
+{
+training mode: kd
+pruning iteration: 3
+teacher accuracy: 0.79
+f1 score on test set: 0.782
+loss on training set: 0.14321939647197723
+}
+{
+training mode: kd
+pruning iteration: 4
+teacher accuracy: 0.7940000000000002
+f1 score on test set: 0.787
+loss on training set: 0.25392836332321167
+}
+{
+training mode: kd
+pruning iteration: 5
+teacher accuracy: 0.791
+f1 score on test set: 0.807
+loss on training set: 0.2647302448749542
+}
+{
+training mode: kd
+pruning iteration: 6
+teacher accuracy: 0.797
+f1 score on test set: 0.797
+loss on training set: 0.25609952211380005
+}
+{
+training mode: kd
+pruning iteration: 7
+teacher accuracy: 0.801
+f1 score on test set: 0.79
+loss on training set: 0.2749226689338684
+}
+{
+training mode: kd
+pruning iteration: 8
+teacher accuracy: 0.799
+f1 score on test set: 0.792
+loss on training set: 0.19156739115715027
+}
+{
+training mode: kd
+pruning iteration: 9
+teacher accuracy: 0.796
+f1 score on test set: 0.7810000000000001
+loss on training set: 0.22579284012317657
+}
+{
+training mode: kd
+pruning iteration: 10
+teacher accuracy: 0.799
+f1 score on test set: 0.798
+loss on training set: 0.29029351472854614
+}
+{
+training mode: kd
+pruning iteration: 11
+teacher accuracy: 0.79
+f1 score on test set: 0.782
+loss on training set: 0.2745615839958191
+}
+{
+training mode: kd
+pruning iteration: 12
+teacher accuracy: 0.7840000000000001
+f1 score on test set: 0.774
+loss on training set: 0.27830079197883606
+}
+{
+training mode: kd
+pruning iteration: 13
+teacher accuracy: 0.8000000000000002
+f1 score on test set: 0.801
+loss on training set: 0.24844451248645782
+}
+{
+training mode: kd
+pruning iteration: 14
+teacher accuracy: 0.796
+f1 score on test set: 0.769
+loss on training set: 0.1807374507188797
+}
+{
+training mode: kd
+pruning iteration: 15
+teacher accuracy: 0.78
+f1 score on test set: 0.778
+loss on training set: 0.21821245551109314
+}
+{
+training mode: kd
+pruning iteration: 16
+teacher accuracy: 0.777
+f1 score on test set: 0.788
+loss on training set: 0.277540385723114
+}
+{
+training mode: kd
+pruning iteration: 17
+teacher accuracy: 0.777
+f1 score on test set: 0.764
+loss on training set: 0.29624202847480774
+}
+{
+training mode: kd
+pruning iteration: 18
+teacher accuracy: 0.78
+f1 score on test set: 0.7890000000000001
+loss on training set: 0.33639031648635864
+}
+{
+training mode: kd
+pruning iteration: 19
+teacher accuracy: 0.776
+f1 score on test set: 0.809
+loss on training set: 0.3156418204307556
+}
+{
+training mode: kd
+pruning iteration: 20
+teacher accuracy: 0.774
+f1 score on test set: 0.787
+loss on training set: 0.3087165653705597
+}
+{
+training mode: mi
+pruning iteration: 0
+teacher accuracy: 0.7840000000000001
+f1 score on test set: 0.771
+loss on training set: 1.9660898447036743
+}
+{
+training mode: mi
+pruning iteration: 1
+teacher accuracy: 0.793
+f1 score on test set: 0.7269999999999999
+loss on training set: 0.09686896950006485
+}
+{
+training mode: mi
+pruning iteration: 2
+teacher accuracy: 0.799
+f1 score on test set: 0.747
+loss on training set: 0.11864777654409409
+}
+{
+training mode: mi
+pruning iteration: 3
+teacher accuracy: 0.79
+f1 score on test set: 0.757
+loss on training set: 1.9628448486328125
+}
+{
+training mode: mi
+pruning iteration: 4
+teacher accuracy: 0.7940000000000002
+f1 score on test set: 0.776
+loss on training set: 0.12838077545166016
+}
+{
+training mode: mi
+pruning iteration: 5
+teacher accuracy: 0.791
+f1 score on test set: 0.7890000000000001
+loss on training set: 1.9595725536346436
+}
+{
+training mode: mi
+pruning iteration: 6
+teacher accuracy: 0.797
+f1 score on test set: 0.7729999999999999
+loss on training set: 1.959109902381897
+}
+{
+training mode: mi
+pruning iteration: 7
+teacher accuracy: 0.801
+f1 score on test set: 0.757
+loss on training set: 0.07623378932476044
+}
+{
+training mode: mi
+pruning iteration: 8
+teacher accuracy: 0.799
+f1 score on test set: 0.775
+loss on training set: 0.09251191467046738
+}
+{
+training mode: mi
+pruning iteration: 9
+teacher accuracy: 0.796
+f1 score on test set: 0.771
+loss on training set: 0.09202966094017029
+}
+{
+training mode: mi
+pruning iteration: 10
+teacher accuracy: 0.799
+f1 score on test set: 0.7810000000000001
+loss on training set: 1.1733262538909912
+}
+{
+training mode: mi
+pruning iteration: 11
+teacher accuracy: 0.79
+f1 score on test set: 0.772
+loss on training set: 1.955864429473877
+}
+{
+training mode: mi
+pruning iteration: 12
+teacher accuracy: 0.7840000000000001
+f1 score on test set: 0.786
+loss on training set: 0.07927463203668594
+}
+{
+training mode: mi
+pruning iteration: 13
+teacher accuracy: 0.8000000000000002
+f1 score on test set: 0.757
+loss on training set: 1.9574410915374756
+}
+{
+training mode: mi
+pruning iteration: 14
+teacher accuracy: 0.796
+f1 score on test set: 0.7840000000000001
+loss on training set: 0.10507190227508545
+}
+{
+training mode: mi
+pruning iteration: 15
+teacher accuracy: 0.78
+f1 score on test set: 0.768
+loss on training set: 0.0758097842335701
+}
+{
+training mode: mi
+pruning iteration: 16
+teacher accuracy: 0.777
+f1 score on test set: 0.756
+loss on training set: 1.1833688020706177
+}
+{
+training mode: mi
+pruning iteration: 17
+teacher accuracy: 0.777
+f1 score on test set: 0.785
+loss on training set: 0.08704393357038498
+}
+{
+training mode: mi
+pruning iteration: 18
+teacher accuracy: 0.78
+f1 score on test set: 0.771
+loss on training set: 0.011005407199263573
+}
+{
+training mode: mi
+pruning iteration: 19
+teacher accuracy: 0.776
+f1 score on test set: 0.777
+loss on training set: 0.002560568042099476
+}
+{
+training mode: mi
+pruning iteration: 20
+teacher accuracy: 0.774
+f1 score on test set: 0.7410000000000001
+loss on training set: 0.012519830837845802
+}

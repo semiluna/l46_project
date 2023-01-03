@@ -25,15 +25,8 @@ from gnns.gat_net import GATNet
 from main_gingat_imp import run_fix_mask, run_get_mask
 
 torch.set_num_threads(1)
-
-def prune_teacher(args, data):
-    rewind_weight = None
-    for imp in range(1, 21):
-        rewind_weight = run_get_mask(args, imp, rewind_weight)
-        model = run_fix_mask(args, imp, rewind_weight)
-        # TODO : save model 
-
-def train_student(args, auxiliary_model, data, data_info, device):
+PATH = '/Users/antoniaboca/vs_code/l46_project/kd-models'
+def train_student(args, auxiliary_model, data, data_info, device, pruning_iteration=None, teacher_acc=None):
     '''
     mode:
         full:     training student without teacher
@@ -46,6 +39,7 @@ def train_student(args, auxiliary_model, data, data_info, device):
                 "model_name": {'model','optimizer','epoch_num'}
             }
     '''
+    mode = args.mode
     best_score = 0
     best_loss = 1000.0
 
@@ -74,53 +68,32 @@ def train_student(args, auxiliary_model, data, data_info, device):
             
         logits, middle_feats_s = s_model(g, features, 0, 0)
         
-        if epoch >= args.tofull:
-            args.mode = 'full'
+        # if epoch >= args.tofull:
+        #     args.mode = 'full'
 
-        if args.mode == 'full':
-            '''use the original labels'''
-            additional_loss = torch.tensor(0)
-        else:
+        additional_loss = 0
+        if args.mode != 'full': # use a teacher
             logits_t = generate_label(t_model, g, features, device)
-            
-        if args.mode=='full':
-            ce_loss = loss_fcn(logits[idx_train], labels[idx_train])
-        else:
-            class_loss = loss_fn_kd(logits[idx_train], logits_t[idx_train])
-            #ce_loss = torch.mean( class_loss )
-            ce_loss = loss_fcn(logits[idx_train], labels[idx_train])
-            class_loss_detach = class_loss.detach()
 
-        additional_loss = torch.tensor(0)
+        ce_loss = loss_fcn(logits[idx_train], labels[idx_train])
+
+        if args.mode=='full':
+            loss = ce_loss
         
-        if args.mode == 'kd':
+        elif args.mode == 'kd':
             soft_targets = F.log_softmax(logits_t[idx_train] / 10, dim=-1)
             soft_prob = F.log_softmax(logits[idx_train] / 10, dim=-1)
             soft_targets_loss = nn.KLDivLoss(log_target=True)(soft_prob, soft_targets)
+            additional_loss = 100. * soft_targets_loss
             kd_loss = 100. * soft_targets_loss + 0.5 * ce_loss
-            additional_loss = torch.tensor(0)
+            loss = kd_loss
             
         elif args.mode == 'mi':
-            if epoch>args.warmup_epoch:
-                if not has_run:
-                    #block_optimizer(args, auxiliary_model, "s_model", [args.lr*0.1,args.lr*0.2,args.lr*0.5,args.lr, args.lr])
-                    has_run = True
-                args.loss_weight = 0
-                mi_loss = ( torch.tensor(0).to(device) if args.loss_weight==0 else
-                            gen_mi_loss(auxiliary_model, middle_feats_s[args.target_layer], g, features, 
-                                        subgraph, idx_train, device, class_loss_detach) )
-                
-                additional_loss = mi_loss * args.loss_weight
-            else:
-                #ce_loss *= 0
-                mi_loss = gen_mi_loss(auxiliary_model, middle_feats_s[args.target_layer], g, features, 
-                                        subgraph, idx_train, device, class_loss_detach)
-                additional_loss = mi_loss * args.loss_weight
+            mi_loss = gen_mi_loss(auxiliary_model, middle_feats_s[args.target_layer], g, features, 
+                                    subgraph, idx_train, device)
+            additional_loss = mi_loss * args.loss_weight
+            loss = ce_loss + additional_loss
         
-        loss = ce_loss + additional_loss
-        if args.mode == 'kd':
-            loss = kd_loss
-
         #optimizing(auxiliary_model, loss, ['s_model', 'local_model', 'local_model_s'])
         optimizing(auxiliary_model, loss, ['s_model'])
         loss_list.append(loss.item())
@@ -131,11 +104,30 @@ def train_student(args, auxiliary_model, data, data_info, device):
         print(f"Epoch {epoch:05d} | Loss: {loss_data:.4f} | Mi: {additional_loss_data:.4f} | Time: {time.time()-t0:.4f}s")
         if epoch % 10 == 0:
             score = evaluate_model_small(g, features, labels, idx_val, device, s_model, loss_fcn)
-            if score > best_score or loss_data < best_loss:
+            if score > best_score:
                 best_score = score
                 best_loss = loss_data
                 test_score = test_model_small(g, features, labels, idx_test, s_model, device, loss_fcn)
+                best_model = copy.deepcopy(s_model.state_dict())
     print(f"f1 score on testset: {test_score:.4f}")
+    dict = {
+        'training mode': mode,
+        'pruning iteration': pruning_iteration,
+        'teacher accuracy': teacher_acc,
+        'f1 score on test set': test_score,
+        'loss on training set': best_loss,
+    }
+    with open(f'{PATH}/{args.dataset}/statistics.txt', 'a') as handle:
+        print('{', file=handle)
+        for key, value in dict.items():
+            print(f'{key}: {value}', file=handle)
+        print('}', file=handle)
+    
+    dict['best model'] = best_model
+    with open(f'{PATH}/{args.dataset}/{mode}-{pruning_iteration}', 'wb') as handle:
+        pickle.dump(dict, handle)
+    dict['best model'] = None
+    return dict
 
 
 def train_teacher(args, model, data, device):
@@ -204,7 +196,7 @@ def train_teacher(args, model, data, device):
 
 
 def main(args):
-    PATH_TO_TEACHER = '/Users/antoniaboca/vs_code/l46_project/lth-models/{args.}-iteration-1.pickle'
+    PATH_TO_TEACHER = f'/Users/antoniaboca/vs_code/l46_project/lth-models/{args.dataset}-iteration-{args.iteration}.pickle'
     
     device = torch.device("cpu") if args.gpu<0 else torch.device("cuda:" + str(args.gpu))
     # data, data_info = get_data_loader(args)
@@ -251,18 +243,14 @@ def main(args):
     # print(f"train acc of teacher:")
     # test_model(train_dataloader, t_model, device, loss_fcn)
     
-
-    print("############ train student with teacher #############")
-    train_student(args, model_dict, data, data_info, device)
-
-
+    return train_student(args, model_dict, data, data_info, device, args.iteration, stats['test_acc'])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GAT')
+    parser.add_argument('--all', action='store_true')
     parser.add_argument("--dataset", type=str, default='')
-    parser.add_argument("--iteration", type=int, default=1)
-    parser.add_argument('--pruning', type=bool, action='store_true')
-    
+    parser.add_argument("--iteration", type=int, default=0)
+
     parser.add_argument("--gpu", type=int, default=1,
                         help="which GPU to use. Set -1 to use CPU.")
     parser.add_argument("--residual", action="store_true", default=False,
@@ -327,4 +315,25 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     
-    main(args)
+    if args.all:
+        print(f'––––––––––––––––– DATASET: {args.dataset} –––––––––––––––––')
+        args.mode = 'full'
+        args.iteration = 0
+        print(f'#### Train student without supervision ####')
+        main(args)
+
+        stats = {
+            'kd': [],
+            'mi': [],
+        }
+
+        for mode in ['kd', 'mi']:
+            for iteration in range(21):
+                args.iteration = iteration
+                args.mode = mode
+                print(f'#### Train student with {args.mode} loss with teacher at pruning iteration {args.iteration} ####')
+                res = main(args)
+                stats[mode].append(res)
+
+        with open(f'{PATH}/{args.dataset}/final_results.pickle', 'wb') as handle:
+            pickle.dump(stats, file=handle)
