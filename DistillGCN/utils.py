@@ -147,9 +147,9 @@ def get_teacher(args, data_info):
     #         args.attn_drop,
     #         args.alpha,
     #         args.residual)
-
-    t_model = GATNet(args, data_info['g'], pruning=True)
-    pruning_gat.add_mask(t_model)
+    t_model = GATNet(args, data_info['g'], pruning=(args['iteration'] != 0))
+    if args['iteration'] != 0:
+        pruning_gat.add_mask(t_model)
     
     return t_model
     

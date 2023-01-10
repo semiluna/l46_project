@@ -9,6 +9,8 @@ import copy
 def parameters(model):
     num_params = 0
     for params in model.parameters():
+        if not params.requires_grad:
+            continue
         curn = 1
         for size in params.data.shape:
             curn *= size

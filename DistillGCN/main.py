@@ -117,14 +117,14 @@ def train_student(args, auxiliary_model, data, data_info, device, pruning_iterat
         'f1 score on test set': test_score,
         'loss on training set': best_loss,
     }
-    with open(f'{PATH}/{args.dataset}/statistics.txt', 'a') as handle:
+    with open(f'{PATH}/{args.dataset}-3/statistics.txt', 'a') as handle:
         print('{', file=handle)
         for key, value in dict.items():
             print(f'{key}: {value}', file=handle)
         print('}', file=handle)
     
     dict['best model'] = best_model
-    with open(f'{PATH}/{args.dataset}/{mode}-{pruning_iteration}', 'wb') as handle:
+    with open(f'{PATH}/{args.dataset}-3/{mode}-{pruning_iteration}', 'wb') as handle:
         pickle.dump(dict, handle)
     dict['best model'] = None
     return dict
@@ -200,7 +200,7 @@ def main(args):
     
     device = torch.device("cpu") if args.gpu<0 else torch.device("cuda:" + str(args.gpu))
     # data, data_info = get_data_loader(args)
-    features, labels, idx_train, idx_val, idx_test, data_info = get_data_loader_small()
+    features, labels, idx_train, idx_val, idx_test, data_info = get_data_loader_small(dataset=args.dataset)
     
     data = {
         'features': features,
@@ -335,5 +335,5 @@ if __name__ == '__main__':
                 res = main(args)
                 stats[mode].append(res)
 
-        with open(f'{PATH}/{args.dataset}/final_results.pickle', 'wb') as handle:
+        with open(f'{PATH}/{args.dataset}-3/final_results.pickle', 'wb') as handle:
             pickle.dump(stats, file=handle)

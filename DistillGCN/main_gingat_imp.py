@@ -205,11 +205,11 @@ if __name__ == "__main__":
     if args['dataset'] == '':
         raise Exception("Plase provide a dataset: [Cora, Citeseer, Pubmed]")
     
-    rewind_weight = run_fix_mask(args, 0, None)
+    rewind_weight = None
     for imp in range(1, 21):
         
         rewind_weight = run_get_mask(args, imp, rewind_weight)
-        _ = run_fix_mask(args, imp, rewind_weight)
+        run_fix_mask(args, imp, rewind_weight)
 
 """
 Default command line for Cora:

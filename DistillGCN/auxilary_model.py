@@ -9,7 +9,7 @@ def collect_model(args, t_args, data_info):
     device = torch.device("cpu") # if args.gpu<0 else torch.device("cuda:" + str(args.gpu))
     
     feat_info = get_feat_info(args)
-    
+    t_args['iteration'] = args.iteration
     t_model = get_teacher(t_args, data_info);                         t_model.to(device)
     s_model = get_student(args, data_info);                         s_model.to(device)
     #d_model = get_discriminator(args, feat_info);                   d_model.to(device)
