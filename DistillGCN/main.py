@@ -117,14 +117,14 @@ def train_student(args, auxiliary_model, data, data_info, device, pruning_iterat
         'f1 score on test set': test_score,
         'loss on training set': best_loss,
     }
-    with open(f'{PATH}/{args.dataset}-3/statistics.txt', 'a') as handle:
+    with open(f'{PATH}/{args.dataset}/statistics.txt', 'a+') as handle:
         print('{', file=handle)
         for key, value in dict.items():
             print(f'{key}: {value}', file=handle)
         print('}', file=handle)
     
     dict['best model'] = best_model
-    with open(f'{PATH}/{args.dataset}-3/{mode}-{pruning_iteration}', 'wb') as handle:
+    with open(f'{PATH}/{args.dataset}/{mode}-{pruning_iteration}', 'wb') as handle:
         pickle.dump(dict, handle)
     dict['best model'] = None
     return dict
@@ -315,25 +315,31 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     
-    if args.all:
-        print(f'––––––––––––––––– DATASET: {args.dataset} –––––––––––––––––')
-        args.mode = 'full'
-        args.iteration = 0
-        print(f'#### Train student without supervision ####')
-        main(args)
+    args.mode = 'full'
+    args.iteration = 0
+    print(main(args))
 
-        stats = {
-            'kd': [],
-            'mi': [],
-        }
 
-        for mode in ['kd', 'mi']:
-            for iteration in range(21):
-                args.iteration = iteration
-                args.mode = mode
-                print(f'#### Train student with {args.mode} loss with teacher at pruning iteration {args.iteration} ####')
-                res = main(args)
-                stats[mode].append(res)
+    # if args.all:
+    #     print(f'––––––––––––––––– DATASET: {args.dataset} –––––––––––––––––')
+    #     args.mode = 'full'
+    #     args.iteration = 0
+    #     print(f'#### Train student without supervision ####')
+    #     res = main(args)
 
-        with open(f'{PATH}/{args.dataset}-3/final_results.pickle', 'wb') as handle:
-            pickle.dump(stats, file=handle)
+    #     stats = {
+    #         'full': [res],
+    #         'kd': [],
+    #         'mi': [],
+    #     }
+
+    #     for mode in ['kd', 'mi']:
+    #         for iteration in range(21):
+    #             args.iteration = iteration
+    #             args.mode = mode
+    #             print(f'#### Train student with {args.mode} loss with teacher at pruning iteration {args.iteration} ####')
+    #             res = main(args)
+    #             stats[mode].append(res)
+
+    #     with open(f'{PATH}/{args.dataset}-3/final_results.pickle', 'wb') as handle:
+    #         pickle.dump(stats, file=handle)
